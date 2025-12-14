@@ -74,6 +74,15 @@ DEFAULT_ITERATIONS = 500
 
 
 # =============================================================================
+# Google Drive Configuration
+# =============================================================================
+
+# Google Drive folder containing cached metrics
+GDRIVE_METRICS_FOLDER_ID = "1SFhFIgPzSsH9FwOBhmkHEoT4016Tld6k"
+GDRIVE_METRICS_URL = f"https://drive.google.com/drive/folders/{GDRIVE_METRICS_FOLDER_ID}"
+
+
+# =============================================================================
 # Helper Functions
 # =============================================================================
 
@@ -82,3 +91,70 @@ def ensure_dirs_exist() -> None:
     PLOTS_DIR.mkdir(parents=True, exist_ok=True)
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def download_metrics_from_gdrive(force: bool = False) -> Path:
+    """Download metrics.parquet from Google Drive if not present locally.
+
+    This function downloads the cached metrics file from the shared Google Drive
+    folder. Requires the 'gdown' package to be installed.
+
+    Args:
+        force: If True, download even if file already exists locally.
+
+    Returns:
+        Path to the downloaded metrics.parquet file.
+
+    Raises:
+        ImportError: If gdown is not installed.
+        RuntimeError: If download fails.
+    """
+    ensure_dirs_exist()
+
+    if METRICS_CACHE_FILE.exists() and not force:
+        print(f"Metrics file already exists: {METRICS_CACHE_FILE}")
+        return METRICS_CACHE_FILE
+
+    try:
+        import gdown
+    except ImportError:
+        raise ImportError(
+            "gdown is required to download from Google Drive. "
+            "Install it with: pip install gdown"
+        )
+
+    print(f"Downloading metrics.parquet from Google Drive...")
+    print(f"Source: {GDRIVE_METRICS_URL}")
+
+    # Download all files from the folder to cache directory
+    gdown.download_folder(
+        url=GDRIVE_METRICS_URL,
+        output=str(CACHE_DIR),
+        quiet=False,
+    )
+
+    if not METRICS_CACHE_FILE.exists():
+        raise RuntimeError(
+            f"Download completed but metrics.parquet not found at {METRICS_CACHE_FILE}. "
+            "Please check the Google Drive folder contents."
+        )
+
+    print(f"Successfully downloaded to: {METRICS_CACHE_FILE}")
+    return METRICS_CACHE_FILE
+
+
+def load_metrics() -> "pd.DataFrame":
+    """Load metrics from cache, downloading from Google Drive if needed.
+
+    Returns:
+        DataFrame containing the cached metrics.
+
+    Raises:
+        ImportError: If pandas or gdown is not installed.
+    """
+    import pandas as pd
+
+    if not METRICS_CACHE_FILE.exists():
+        download_metrics_from_gdrive()
+
+    return pd.read_parquet(METRICS_CACHE_FILE)

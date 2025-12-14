@@ -17,6 +17,9 @@ tqdm>=4.62.0
 pyarrow>=6.0.0  # For parquet support
 openpyxl>=3.0.0  # For Excel support
 
+# Data download
+gdown>=4.6.0  # For downloading from Google Drive
+
 # Jupyter
 jupyter>=1.0.0
 notebook>=6.4.0

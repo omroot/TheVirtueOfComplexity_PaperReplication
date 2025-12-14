@@ -52,7 +52,16 @@ print(bt.calc_performance())
 |------|-------------|
 | `metrics.parquet` | Simulation results (~2M runs, 96 MB) |
 
-The `metrics.parquet` file is included so you can run the notebook instantly. To regenerate it yourself (takes multiple hours), delete or move the file and re-run the notebook.
+The `metrics.parquet` file is not included in the repository due to its size. Download it from [Google Drive](https://drive.google.com/drive/folders/1SFhFIgPzSsH9FwOBhmkHEoT4016Tld6k?usp=drive_link) or use the built-in helper:
+
+```python
+from src.config import load_metrics
+
+# Auto-downloads from Google Drive if not present, then loads the DataFrame
+metrics = load_metrics()
+```
+
+To regenerate it yourself (takes multiple hours), delete the file and re-run the notebook.
 
 ## Results
 
